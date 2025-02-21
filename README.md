@@ -1,5 +1,5 @@
-# CS 4610 Express React Docker Starter App
-This application is a simple Express application with React frontend that uses Docker for development. It comes with a Postres database and Prisma ORM.
+# YouTube video summarizer
+This application is an Express application with React frontend that uses Docker for development. It comes with a Postres database and Prisma ORM. 
 
 ## Getting Started
 1. Fork/Clone this repository
