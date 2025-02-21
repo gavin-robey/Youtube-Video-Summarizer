@@ -2,17 +2,19 @@ import express, { response } from 'express';
 import { config } from 'dotenv';
 import http from 'http';
 import { Ollama } from 'ollama'
+import { PrismaClient } from '@prisma/client'
 
 config();
 const app = express();
+const prisma = new PrismaClient();
 const server = http.createServer(app);
 const port = parseInt(process.env.PORT || '3000');
 
-
 const ollama = new Ollama({ host: process.env.OLLAMA_URL });
 ollama.pull({
-  model: 'llama3.1',
+  model: 'tinyllama',
 })
+
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -40,7 +42,7 @@ app.get('/', (req, res) => {
           window.__vite_plugin_react_preamble_installed__ = true
         </script>
         <script type="module" src="${process.env.ASSET_URL}/@vite/client"></script>
-        </head>
+      </head>
         <body>
         <div id="root"></div>
         <script type="module" src="${process.env.ASSET_URL}/src/main.tsx"></script>
@@ -49,17 +51,28 @@ app.get('/', (req, res) => {
     `);
 });
 
-
-app.post('/sendPrompt', async(req, res) => {
+// API
+app.post('/api/sendPrompt', async(req, res) => {
   const prompt = req.body.prompt;
   const response = await ollama.chat({
-    model: 'llama3.1',
-    messages: [{ role: 'user', content: 'Why is the sky blue?' }],
+    model: 'tinyllama',
+    messages: [{ role: 'user', content: prompt }],
   })
 
-  res.json({ response: response });
+  await prisma.message.create({
+    data: {
+      humanMessage: prompt,
+      AIMessage: response.message.content.toString(),
+    }
+  });
+
+  res.json(response.message);
 });
 
-server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+app.get('/api/getMessages', async(req, res) => {
+  const messages = await prisma.message.findMany();
+  res.json(messages);
 });
+
+server.listen(port, () => console.log(`Server is running on http://localhost:${port}`));
+
