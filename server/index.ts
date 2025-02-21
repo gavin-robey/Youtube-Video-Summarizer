@@ -1,26 +1,20 @@
-import express from 'express';
+import express, { response } from 'express';
 import { config } from 'dotenv';
 import http from 'http';
+import { Ollama } from 'ollama'
 
-
-// load environment variables
 config();
-
 const app = express();
-
-// slightly modified version of the code we wrote in class.
-// we wrap the express app in a node http server so that we can
-// expose the server to socket.io later on.
 const server = http.createServer(app);
 const port = parseInt(process.env.PORT || '3000');
 
 
-// a simple middleware the redirects
-// to the asset server if the request
-// path contains a dot. We use the dot
-// to differentiate between asset requests
-// and normal requests because file names have
-// dots in them.
+const ollama = new Ollama({ host: process.env.OLLAMA_URL });
+ollama.pull({
+  model: 'llama3.1',
+})
+
+app.use(express.json());
 app.use((req, res, next) => {
   if (req.path.includes(".")) {
     res.redirect(process.env.ASSET_URL + req.path);
@@ -53,6 +47,17 @@ app.get('/', (req, res) => {
       </body>
     </html>
     `);
+});
+
+
+app.post('/sendPrompt', async(req, res) => {
+  const prompt = req.body.prompt;
+  const response = await ollama.chat({
+    model: 'llama3.1',
+    messages: [{ role: 'user', content: 'Why is the sky blue?' }],
+  })
+
+  res.json({ response: response });
 });
 
 server.listen(port, () => {
