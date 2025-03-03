@@ -17,7 +17,8 @@
     "@prisma/client": "^6.3.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "ollama": "^0.5.13"
+    "ollama": "^0.5.13",
+    "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
